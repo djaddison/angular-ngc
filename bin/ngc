@@ -1,0 +1,87 @@
+#!/usr/bin/env node
+/*
+ *  Copyright 2016 David Addison
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+process.title = 'ngc';
+
+let args = require('commander');
+let path = require('path');
+let fs   = require('fs');
+let packageJson = require('../package.json');
+
+// Helper functions
+function byKey(input, key){
+  return input.reduce( (previous, current) => {
+    return Object.assign( previous, { [current[key]]:current });
+  }, {})
+}
+function capitalize(input){
+  return input.charAt(0).toUpperCase() + input.slice(1);
+}
+function generateClass(input){
+  return input.split('-').map( i => capitalize(i)).join('');
+}
+
+// Generate a list of available templates
+let templatePath  = path.resolve( __dirname, 'templates' );
+let templateFiles = fs.readdirSync(templatePath).map( filename => path.resolve(templatePath, filename));
+let templateList  = templateFiles.map( templateFilename => require(templateFilename));
+let templateTypes = templateList.map( template => template['type']);
+let templateHash  = byKey(templateList, 'type');
+
+// Parse commandline options
+
+args.version(packageJson.version);
+args.usage('-n <selector> [options]');
+args.option('-t, --template <type>', 'default: multiple ['+templateTypes.join(', ')+']', 'multiple');
+args.option('-n, --name <selector>', '(required) @Component selector', '');
+args.option('-p, --path <path>', 'create files in <path>', process.cwd());
+args.parse(process.argv);
+
+// Check for the existence of selector
+if( args.name == '') {
+  console.log('\n   Error: missing required argument -n <selector>\n');
+  process.exit(1);
+}
+
+// Check for the existence of the template
+if( !templateHash.hasOwnProperty(args.template) ){
+  console.log('\n   Error: ' + args.template + ' template does not exist\n');
+  process.exit(1);
+}
+
+// Create template expansion variables
+let templateExpansion = {
+  selector: args.name,
+  filename: args.name.toLowerCase(),
+  class:    generateClass(args.name)
+}
+
+// Create files based on rendered templates
+console.log('\nCreating component(s)');
+console.log('  template: ' + args.template);
+console.log('  selector: ' + templateExpansion.selector);
+
+for (file of templateHash[args.template].files) {
+  try {
+    let filename = path.join(args.path, file.renderFilename(templateExpansion));
+    let fd = fs.openSync( filename, 'wx');
+    fs.writeSync(fd, file.renderContent(templateExpansion));
+    console.log('  creating: ' + filename);
+  } catch (e) {
+    console.log('     ' + e);
+  }
+}
+console.log('');

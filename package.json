@@ -1,0 +1,24 @@
+{
+  "name": "angular-ngc",
+  "version": "0.2.1",
+  "description": "A utility tool for generating files for Angular2 projects.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djaddison/angular-ngc.git"
+  },
+  "bugs": {
+    "url": "https://github.com/djaddison/angular-ngc/issues"
+  },
+  "homepage": "https://github.com/djaddison/angular-ngc",
+  "author": "David Addison <djaddison.vcs@gmail.com>",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "commander": "^2.9.0"
+  },
+  "bin": {
+    "ngc": "bin/ngc.js"
+  },
+  "engines": {
+    "node": ">= 6.7.0"
+  }
+}
