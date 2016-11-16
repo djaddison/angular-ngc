@@ -1,14 +1,10 @@
-function renderFilename( expand ){
-  return expand.filename + this.fileExt;
-}
-
-function renderTypeScript( expand ){
-return `import { Component } from "@angular/core";
+let TypeScriptContent = `
+import { Component } from "@angular/core";
 
 @Component({
-    selector: "${expand.selector}",
+    selector: "{{selector}}",
     template: \`
-      <p>${expand.selector} component</p>
+      <p>{{selector}} component</p>
     \`,
     styles: [\`
       :host {
@@ -16,12 +12,12 @@ return `import { Component } from "@angular/core";
       }
     \`]
 })
-export class ${expand.class}Component {}`;
-}
+export class {{class}}Component {}`;
 
 module.exports = {
   type: 'single',
+  keys: ['selector', 'class', 'filename'],
   files: [
-    { type: 'typescript', fileExt: '.component.ts', renderContent: renderTypeScript, renderFilename: renderFilename }
+    { type: 'typescript', filename: '{{filename}}.component.ts', content: TypeScriptContent }
   ]
 };

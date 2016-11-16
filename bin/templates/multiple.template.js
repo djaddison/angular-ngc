@@ -1,31 +1,20 @@
-function renderFilename( expand ){
-  return expand.filename + this.fileExt;
-}
-
-function renderTypeScript( expand ){
-return `import { Component } from "@angular/core";
+let HTMLContent = "<p>{{selector}} component</p>";
+let SASSContent = ':host {\n  display: block;\n}\n';
+let TypeScriptContent = `import { Component } from "@angular/core";
 
 @Component({
-    selector: "${expand.selector}",
-    template: require("./${expand.filename}.component.html"),
-    styles:  [require("./${expand.filename}.component.scss")]
+    selector: "{{selector}}",
+    template: require("./{{filename}}.component.html"),
+    styles:  [require("./{{filename}}.component.scss")]
 })
-export class ${expand.class}Component {}`;
-}
-
-function renderHTML( expand ){
-  return `<p>${expand.selector} component</p>`;
-}
-
-function renderSASS( expand ){
-  return ':host {\n  display: block;\n}\n';
-}
+export class {{class}}Component {}`;
 
 module.exports = {
   type: 'multiple',
+  keys: ['selector', 'class', 'filename'],
   files: [
-    { type: 'typescript', fileExt: '.component.ts', renderContent: renderTypeScript, renderFilename: renderFilename },
-    { type: 'html', fileExt: '.component.html', renderContent: renderHTML, renderFilename: renderFilename },
-    { type: 'scss', fileExt: '.component.scss', renderContent: renderSASS, renderFilename: renderFilename }
+    { type: 'html', filename: '{{filename}}.component.html', content: HTMLContent },
+    { type: 'scss', filename: '{{filename}}.component.scss', content: SASSContent },
+    { type: 'typescript', filename: '{{filename}}.component.ts', content: TypeScriptContent }
   ]
 };

@@ -14,12 +14,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-process.title = 'ngc';
-
+let Mustache = require('mustache');
 let args = require('commander');
 let path = require('path');
 let fs   = require('fs');
 let packageJson = require('../package.json');
+
+process.title = packageJson.name;
 
 // Helper functions
 function byKey(input, key){
@@ -42,17 +43,25 @@ let templateTypes = templateList.map( template => template['type']);
 let templateHash  = byKey(templateList, 'type');
 
 // Parse commandline options
-
 args.version(packageJson.version);
-args.usage('-n <selector> [options]');
-args.option('-t, --template <type>', 'default: multiple ['+templateTypes.join(', ')+']', 'multiple');
-args.option('-n, --name <selector>', '(required) @Component selector', '');
+args.usage('-c <selector> [options]');
 args.option('-p, --path <path>', 'create files in <path>', process.cwd());
+args.option('-t, --template <type>', 'default: multiple ['+templateTypes.join(', ')+']', 'multiple');
+args.option('-c, --component <selector>', '(required) @Component selector', '');
 args.parse(process.argv);
 
+//---------------------------------------------------------
+// TODO: Possible arg options
+// a for angular2
+// c for component
+// k for [key:value,key:value] for template
+// args.option('-i, --init-project');
+// args.option('-d, --tempateData <file.json>', '');
+//---------------------------------------------------------
+
 // Check for the existence of selector
-if( args.name == '') {
-  console.log('\n   Error: missing required argument -n <selector>\n');
+if( args.component == '') {
+  console.log('\n   Error: missing required argument -c <selector>\n');
   process.exit(1);
 }
 
@@ -64,9 +73,9 @@ if( !templateHash.hasOwnProperty(args.template) ){
 
 // Create template expansion variables
 let templateExpansion = {
-  selector: args.name,
-  filename: args.name.toLowerCase(),
-  class:    generateClass(args.name)
+  selector: args.component,
+  filename: args.component.toLowerCase(),
+  class:    generateClass(args.component)
 }
 
 // Create files based on rendered templates
@@ -74,11 +83,13 @@ console.log('\nCreating component(s)');
 console.log('  template: ' + args.template);
 console.log('  selector: ' + templateExpansion.selector);
 
-for (file of templateHash[args.template].files) {
+for (let file of templateHash[args.template].files) {
   try {
-    let filename = path.join(args.path, file.renderFilename(templateExpansion));
+    let basename = Mustache.render(file.filename, templateExpansion);
+    let content  = Mustache.render(file.content,  templateExpansion);
+    let filename = path.join(args.path, basename);
     let fd = fs.openSync( filename, 'wx');
-    fs.writeSync(fd, file.renderContent(templateExpansion));
+    fs.writeSync(fd, content);
     console.log('  creating: ' + filename);
   } catch (e) {
     console.log('     ' + e);

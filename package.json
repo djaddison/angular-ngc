@@ -13,10 +13,11 @@
   "author": "David Addison <djaddison.vcs@gmail.com>",
   "license": "Apache-2.0",
   "dependencies": {
-    "commander": "^2.9.0"
+    "commander": "^2.9.0",
+    "mustache": "2.2.1"
   },
   "bin": {
-    "ngc": "bin/ngc.js"
+    "ngc": "bin/ngc"
   },
   "engines": {
     "node": ">= 6.7.0"
