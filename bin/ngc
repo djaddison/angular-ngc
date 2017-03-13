@@ -20,6 +20,32 @@ let path = require('path');
 let fs   = require('fs');
 let packageJson = require('../package.json');
 
+function mkdirSync(inputPath){
+  console.log('\ninput:', inputPath);
+
+  let pathArray = inputPath.split(path.sep);
+  let length = pathArray.length;
+
+  // If the path starts with '/' or './' then start on the next element
+  // If the path ends with '/' then end iterattion one element early
+  let start = (pathArray[0] === '' || pathArray[0] === '.') ? 2 : 1;
+  let end   = (pathArray[length-1] === '') ? (length -1) : length;
+
+
+  for( let i = start; i <= end; i++){
+    let currentPath = pathArray.slice(0,i).join(path.sep);
+    console.log(i, currentPath);
+  }
+}
+
+mkdirSync( path.join(process.cwd(), 'test/one/two') );
+mkdirSync( 'test/one/two' );
+mkdirSync( 'test/one/two/' );
+mkdirSync( './test/one/two');
+mkdirSync( './test/one/two/');
+
+process.exit(1);
+
 process.title = packageJson.name;
 
 // Helper functions
@@ -85,12 +111,16 @@ console.log('  selector: ' + templateExpansion.selector);
 
 for (let file of templateHash[args.template].files) {
   try {
-    let basename = Mustache.render(file.filename, templateExpansion);
+    let filename = Mustache.render(file.filename, templateExpansion);
+    let pathname = path.dirname(filename);
+
+
     let content  = Mustache.render(file.content,  templateExpansion);
-    let filename = path.join(args.path, basename);
-    let fd = fs.openSync( filename, 'wx');
-    fs.writeSync(fd, content);
-    console.log('  creating: ' + filename);
+    let fullpath = path.join(args.path, filename);
+    console.log(pathname, ' : ', fullpath);
+    // let fd = fs.openSync( fullpath, 'wx');
+    // fs.writeSync(fd, content);
+    // console.log('  creating: ' + filename);
   } catch (e) {
     console.log('     ' + e);
   }
